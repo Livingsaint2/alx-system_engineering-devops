@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# a bash script the display Best School Ten times
+b=10
+while (( b > 0 ));
+ do echo 'Best School';
+ ((b--));
+ done
+unset b
