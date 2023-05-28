@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# a bash script that displays all the running processes wwith it names
+pgrep -l bash
