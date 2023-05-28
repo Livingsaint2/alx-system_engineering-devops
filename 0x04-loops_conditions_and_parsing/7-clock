@@ -7,7 +7,7 @@ while [ $hour -lt 13 ]; do
 		if [ $minutes -eq 0 ]
 		then
 			echo "Hour: $hour"
-			let hour=hour+1
+			(( hour=hour+1))
 		else
 			echo "$minutes"
 		fi
