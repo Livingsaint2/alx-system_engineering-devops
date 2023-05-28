@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# a bash script that create, displays and deletes processes
+trap "echo 'I hate the kill command'; rm '/var/run/myscript.pid'; exit" SIGTERM
+trap "echo 'Y U no love me?!'" SIGINT
+trap "rm '/var/run/myscript.pid'; exit" SIGQUIT
+my_pid=$(pgrep -f "$0")
+echo "$my_pid" > /var/run/myscript.pid
+while true
+do
+	echo "To infinity and beyond"
+done
