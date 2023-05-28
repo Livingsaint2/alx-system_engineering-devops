@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# a bash that displays PID
+pgrep -f "$0"
