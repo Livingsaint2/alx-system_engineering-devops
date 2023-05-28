@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# a bash script that displays all bash running processes
+ps -aux -f | while read i; do
+	if [[ $i == *"bash"* ]]
+	then
+		echo "$i"
+	fi
+done
