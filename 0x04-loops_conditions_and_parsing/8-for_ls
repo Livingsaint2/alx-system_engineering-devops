@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# a bash script that displays loops names
+shopt -s nullglob
+for i in *;
+	do
+	echo "$i" | cut -d '-' -f2;
+done
