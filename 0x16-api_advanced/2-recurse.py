@@ -4,19 +4,28 @@ import requests
 import sys
 
 
-def recurse(subreddit, hot_list=[]):
-    """ recursively get hot list items """
-    url = 'https://reddit.com/r/' + subreddit + '/hot/.json'
-    h_list = requests.get(url, headers={'User-agent':
-                          'Livingsaint2'}).json().get('data')
-    if h_list is None:
+def recurse(subreddit, hot_list=[], after="", count=0):
+    """Returns a list of titles of all hot posts on a given subreddit."""
+    url = "https://www.reddit.com/r/{}/hot/.json".format(subreddit)
+    headers = {
+        "User-Agent": "linux:0x16.api.advanced:v1.0.0 (by /u/bdov_)"
+    }
+    params = {
+        "after": after,
+        "count": count,
+        "limit": 100
+    }
+    response = requests.get(url, headers=headers, params=params,
+                            allow_redirects=False)
+    if response.status_code == 404:
         return None
-    else:
-        hl_list = h_list.get('children')
-        hl_len = len(hot_list)
-        if hl_len <= 10:
-            hl_add = hl_list[hl_len].get('data').get('title')
-            hot_list.append(hl_add)
-            recurse(subreddit, hot_list)
-        else:
-            return hot_list
+
+    results = response.json().get("data")
+    after = results.get("after")
+    count += results.get("dist")
+    for c in results.get("children"):
+        hot_list.append(c.get("data").get("title"))
+
+    if after is not None:
+        return recurse(subreddit, hot_list, after, count)
+    return hot_list
