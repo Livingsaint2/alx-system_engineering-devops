@@ -5,54 +5,63 @@ Module for count_words function
 import requests
 
 
-def count_words(subreddit, word_list, new_after='',
-                words_dict={}):
-    """
-    A recursive function that queries the Reddit API,
-    parses the title of all hot articles, and prints a
-    sorted count of given keywords
-    """
+def add_title(dictionary, hot_posts):
+    """ Adds item into a list """
+    if len(hot_posts) == 0:
+        return
 
-    word_list = map(lambda x: x.lower(), word_list)
-    word_list = list(word_list)
+    title = hot_posts[0]['data']['title'].split()
+    for word in title:
+        for key in dictionary.keys():
+            c = re.compile("^{}$".format(key), re.I)
+            if c.findall(word):
+                dictionary[key] += 1
+    hot_posts.pop(0)
+    add_title(dictionary, hot_posts)
 
-    res = requests.get("https://www.reddit.com/r/{}/hot.json"
-                       .format(subreddit),
-                       headers={'User-Agent': 'Custom'},
-                       params={'after': new_after},
+
+def recurse(subreddit, dictionary, after=None):
+    """ Queries the Reddit API """
+    u_agent = 'Mozilla/5.0'
+    headers = {
+        'User-Agent': u_agent
+    }
+
+    params = {
+        'after': after
+    }
+
+    url = "https://www.reddit.com/r/{}/hot.json".format(subreddit)
+    res = requests.get(url,
+                       headers=headers,
+                       params=params,
                        allow_redirects=False)
 
     if res.status_code != 200:
+        return None
+
+    dic = res.json()
+    hot_posts = dic['data']['children']
+    add_title(dictionary, hot_posts)
+    after = dic['data']['after']
+    if not after:
         return
+    recurse(subreddit, dictionary, after=after)
 
-    try:
-        response = res.json().get('data', None)
 
-        if response is None:
-            return
-    except ValueError:
-        return
+def count_words(subreddit, word_list, dictionary=None):
+    """ Init function """
+    if dictionary is None:
+        dictionary = {}
 
-    children = response.get('children', [])
+    for word in word_list:
+        word = word.lower()
+        if word not in dictionary:
+            dictionary[word] = 0
 
-    for post in children:
-        title = post.get('data', {}).get('title', '')
-        for key_word in word_list:
-            for word in title.lower().split():
-                if key_word == word:
-                    words_dict[key_word] = words_dict.get(key_word, 0) + 1
+    recurse(subreddit, dictionary)
 
-    new_after = response.get('after', None)
-
-    if new_after is None:
-        sorted_dict = sorted(words_dict.items(),
-                             key=lambda x: x[1],
-                             reverse=True)
-
-        for i in sorted_dict:
-            if i[1] != 0:
-                print("{}: {}".format(i[0], i[1]))
-        return
-
-    return count_words(subreddit, word_list,
-                       new_after, words_dict)
+    sorted_items = sorted(dictionary.items(), key=lambda kv: (-kv[1], kv[0]))
+    for item in sorted_items:
+        if item[1] > 0:
+            print("{}: {}".format(item[0], item[1]))
